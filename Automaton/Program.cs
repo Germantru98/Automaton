@@ -6,7 +6,7 @@ namespace Automaton
 {
     internal class Program
     {
-        public static KeyValuePair<bool, int> Task1(Automaton A, string str, int position)
+        public static KeyValuePair<bool, int> MaxStr(Automaton A, string str, int position)
         {
             bool flag = false;
             int maxLength = 0;
@@ -43,7 +43,9 @@ namespace Automaton
         {
             Automaton a = new Automaton("Automaton_1.txt");
             Console.WriteLine(a);
-            Console.WriteLine(Task1(a, GetStr("Input.txt"), 1));
+            var str = GetStr("Input.txt");
+            Console.WriteLine("Последовательность: "+str);
+            Console.WriteLine(MaxStr(a, str, 4));
         }
     }
 }

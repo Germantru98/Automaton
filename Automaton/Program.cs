@@ -1,34 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Automaton
 {
     internal class Program
     {
-        public static KeyValuePair<bool, int> MaxStr(Automaton A, string str, int position)
+        public static string MaxStr(Automaton A, string str, int position)
         {
-            bool flag = false;
-            int maxLength = 0;
             State curState = A.GetStartState();
             int[,] delta = A._delta;
+            string result = string.Empty;
+            bool isFinishState = false;
             for (int i = position; i < str.Length; i++)
             {
-                int[] curStateValues = A.GetLineFromMatrixByState(curState);
                 int index = A.GetIdFromSigmaByChar(str[i]);
-                if (index == 888)
+                if (index == -1)
                 {
-                    Console.WriteLine("error, char not in Sigma");
-                    return new KeyValuePair<bool, int>(flag, maxLength);
+                    result = "error";
+                    return result;
                 }
                 else
                 {
+                    result += str[i];
                     curState = A.GetStateByID(delta[curState._stateID, index]);
-                    maxLength++;
-                    flag = true;
+                    if (curState._stateType == 2)
+                    {
+                        isFinishState = true;
+                    }
+                    else
+                    {
+                        isFinishState = false;
+                    }
                 }
             }
-            return new KeyValuePair<bool, int>(flag, maxLength);
+            if (isFinishState)
+            {
+                return result;
+            }
+            else
+            {
+                result = "error";
+                return result;
+            }
         }
 
         public static string GetStr(string fileName)
@@ -42,10 +55,12 @@ namespace Automaton
         private static void Main(string[] args)
         {
             Automaton a = new Automaton("Automaton_1.txt");
-            Console.WriteLine(a);
             var str = GetStr("Input.txt");
-            Console.WriteLine("Последовательность: "+str);
-            Console.WriteLine(MaxStr(a, str, 4));
+            Console.WriteLine("Последовательность: " + str);
+            for (int i = 0; i < str.Length; i++)
+            {
+                Console.WriteLine(MaxStr(a, str, i));
+            }
         }
     }
 }

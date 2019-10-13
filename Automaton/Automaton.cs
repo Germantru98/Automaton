@@ -38,15 +38,13 @@ namespace Automaton
                 var tmpSigma = stream.ReadLine().Split();
                 CreateSigma(tmpSigma);
                 int _count = int.Parse(stream.ReadLine());
-
-                //переделать составления матрицы, где i это состояния, а j это сигналы.
                 int lineCount = _q.Count;
                 int columnCount = _sigma.Count;
                 _delta = new int[lineCount, columnCount];
                 for (int k = 0; k < _count; k++)
                 {
                     int i = 0, j = 0;
-                    var tmpData = stream.ReadLine().Split(); ;
+                    var tmpData = stream.ReadLine().Split();
                     i = GetIdByStateName(tmpData[0]);
                     j = GetIdByChar(char.Parse(tmpData[1]));
                     _delta[i, j] = GetIdByStateName(tmpData[2]);
@@ -103,7 +101,7 @@ namespace Automaton
             State result = null;
             foreach (var item in _q)
             {
-                if (item._statePosition == 0)
+                if (item._stateType == 0)
                     result = item;
             }
             return result;
@@ -111,7 +109,7 @@ namespace Automaton
 
         private int GetIdByChar(char c)
         {
-            int result = 888;
+            int result = -1;
             foreach (var item in _sigma)
             {
                 if (c == item.Value)

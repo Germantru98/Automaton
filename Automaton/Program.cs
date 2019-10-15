@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace Automaton
 {
@@ -14,10 +15,15 @@ namespace Automaton
             for (int i = position; i < str.Length; i++)
             {
                 int index = A.GetIdFromSigmaByChar(str[i]);
+                var tmpData = A.GetLineFromMatrixByState(curState);
                 if (index == -1)
                 {
-                    result = "error";
-                    return result;
+                    Console.WriteLine("'{0}'", str[i]);
+                    return "Error type 1 Symbol not in unput signals";
+                }
+                else if (tmpData[index] == 0)
+                {
+                    return "Error type 2 State can't work with cur symbol";
                 }
                 else
                 {
@@ -35,20 +41,27 @@ namespace Automaton
             }
             if (isFinishState)
             {
-                return result;
+                return "result= " + result;
             }
             else
             {
-                result = "error";
-                return result;
+                return "Error type 3 Not in finish(2) state";
             }
         }
 
         public static string GetStr(string fileName)
         {
-            using (StreamReader stream = new StreamReader(fileName))
+            using (StreamReader stream = new StreamReader(fileName, Encoding.Default))
             {
-                return stream.ReadLine().Trim();
+                return stream.ReadLine();
+            }
+        }
+
+        public static void WriteResultIntoFile(string result)
+        {
+            using (StreamWriter writer = new StreamWriter("output.txt", true))
+            {
+                writer.WriteLine(result);
             }
         }
 
@@ -59,6 +72,7 @@ namespace Automaton
             Console.WriteLine("Последовательность: " + str);
             for (int i = 0; i < str.Length; i++)
             {
+                //WriteResultIntoFile(MaxStr(a, str, i));
                 Console.WriteLine(MaxStr(a, str, i));
             }
         }

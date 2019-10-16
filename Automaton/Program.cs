@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -6,29 +7,40 @@ namespace Automaton
 {
     internal class Program
     {
-        public static string MaxStr(Automaton A, string str, int position)
+        public static KeyValuePair<bool, int> MaxStr(Automaton A, string str, int position)
         {
+            bool flag = false;
+            int maxLength = 0;
             State curState = A.GetStartState();
             int[,] delta = A._delta;
-            string result = string.Empty;
             bool isFinishState = false;
+            if (curState._stateType == 2)
+            {
+                isFinishState = true;
+            }
+            else
+            {
+                isFinishState = false;
+            }
             for (int i = position; i < str.Length; i++)
             {
+                int[] curStateValues = A.GetLineFromMatrixByState(curState);
                 int index = A.GetIdFromSigmaByChar(str[i]);
-                var tmpData = A.GetLineFromMatrixByState(curState);
                 if (index == -1)
                 {
-                    Console.WriteLine("'{0}'", str[i]);
-                    return "Error type 1 Symbol not in unput signals";
+                    flag = false;
+                    return new KeyValuePair<bool, int>(flag, maxLength);
                 }
-                else if (tmpData[index] == 0)
+                else if (curStateValues[index] == 0)
                 {
-                    return "Error type 2 State can't work with cur symbol";
+                    flag = false;
+                    return new KeyValuePair<bool, int>(flag, maxLength);
                 }
                 else
                 {
-                    result += str[i];
                     curState = A.GetStateByID(delta[curState._stateID, index]);
+                    maxLength++;
+                    flag = true;
                     if (curState._stateType == 2)
                     {
                         isFinishState = true;
@@ -41,12 +53,13 @@ namespace Automaton
             }
             if (isFinishState)
             {
-                return "result= " + result;
+                flag = true;
             }
             else
             {
-                return "Error type 3 Not in finish(2) state";
+                flag = false;
             }
+            return new KeyValuePair<bool, int>(flag, maxLength);
         }
 
         public static string GetStr(string fileName)
@@ -70,10 +83,19 @@ namespace Automaton
             Automaton a = new Automaton("Automaton_1.txt");
             var str = GetStr("Input.txt");
             Console.WriteLine("Последовательность: " + str);
-            for (int i = 0; i < str.Length; i++)
+            int i = 0;
+            while (i < str.Length)
             {
-                //WriteResultIntoFile(MaxStr(a, str, i));
-                Console.WriteLine(MaxStr(a, str, i));
+                var tmp = MaxStr(a, str, i);
+                if (tmp.Key)
+                {
+                    Console.WriteLine("token: {0} result: {1}", tmp, str.Substring(i, tmp.Value));
+                    i += tmp.Value;
+                }
+                else
+                {
+                    i++;
+                }
             }
         }
     }

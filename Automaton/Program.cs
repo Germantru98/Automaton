@@ -28,12 +28,10 @@ namespace Automaton
                 int index = A.GetIdFromSigmaByChar(str[i]);
                 if (index == -1)
                 {
-                    flag = false;
                     return new KeyValuePair<bool, int>(flag, maxLength);
                 }
                 else if (curStateValues[index] == 0)
                 {
-                    flag = false;
                     return new KeyValuePair<bool, int>(flag, maxLength);
                 }
                 else
@@ -47,6 +45,7 @@ namespace Automaton
                     }
                     else
                     {
+                        flag = false;
                         isFinishState = false;
                     }
                 }
@@ -59,7 +58,9 @@ namespace Automaton
             {
                 flag = false;
             }
+
             return new KeyValuePair<bool, int>(flag, maxLength);
+
         }
 
         public static string GetStr(string fileName)
@@ -80,6 +81,7 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
+
             Automaton a = new Automaton("Automaton_1.txt");
             var str = GetStr("Input.txt");
             Console.WriteLine("Последовательность: " + str);

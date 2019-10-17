@@ -60,7 +60,6 @@ namespace Automaton
             }
 
             return new KeyValuePair<bool, int>(flag, maxLength);
-
         }
 
         public static string GetStr(string fileName)
@@ -81,7 +80,6 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
-
             Automaton a = new Automaton("Automaton_1.txt");
             var str = GetStr("Input.txt");
             Console.WriteLine("Последовательность: " + str);

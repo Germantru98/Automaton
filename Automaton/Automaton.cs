@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Automaton
 {
@@ -238,6 +239,11 @@ namespace Automaton
                 }
             }
             return string.Concat(result);
+        }
+
+        public bool isSymbolInSigma(char c)
+        {
+            return _sigma.Values.Contains(c);
         }
     }
 }

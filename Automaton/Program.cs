@@ -24,9 +24,13 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
-            Automaton a = new Automaton("ID_Automaton.txt");
             var str = GetStr("Input.txt");
-            Console.WriteLine(a.Task1(str));
+            Lexical_Analyzer l = new Lexical_Analyzer();
+            var test = l.AnalyzeStr(str);
+            foreach (var item in test)
+            {
+                Console.WriteLine(item);
+            }
         }
     }
 }

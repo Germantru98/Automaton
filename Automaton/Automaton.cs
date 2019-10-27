@@ -6,12 +6,14 @@ namespace Automaton
 {
     internal class Automaton
     {
+        public int _priority { get; private set; }
         public List<State> _q { get; private set; }//мн-во состояний
         public Dictionary<int, char> _sigma { get; private set; }// мн-во вх сигналов
         public int[,] _delta { get; private set; }// таблица переходов
 
         public override string ToString()
         {
+            Console.WriteLine("Automaton priority: {0}", _priority);
             ShowAllStates();
             ShowAllInputSignals();
             ShowDelta();
@@ -23,6 +25,7 @@ namespace Automaton
             _q = new List<State>();
             using (StreamReader stream = new StreamReader(filePath))
             {
+                _priority = int.Parse(stream.ReadLine());
                 var _states = stream.ReadLine().ToUpper().Trim().Split();
                 int _stateID = 0;
                 for (int i = 0; i < _states.Length - 1; i++)
@@ -159,6 +162,82 @@ namespace Automaton
                 }
             }
             return result;
+        }
+
+        public KeyValuePair<bool, int> MaxStr(string str, int position)
+        {
+            bool flag = false;
+            int maxLength = 0;
+            State curState = GetStartState();
+            int[,] delta = _delta;
+            bool isFinishState = false;
+            if (curState._stateType == 2)
+            {
+                isFinishState = true;
+            }
+            else
+            {
+                isFinishState = false;
+            }
+            for (int i = position; i < str.Length; i++)
+            {
+                int[] curStateValues = GetLineFromMatrixByState(curState);
+                int index = GetIdFromSigmaByChar(str[i]);
+                if (index == -1)
+                {
+                    return new KeyValuePair<bool, int>(flag, maxLength);
+                }
+                else if (curStateValues[index] == 0)
+                {
+                    return new KeyValuePair<bool, int>(flag, maxLength);
+                }
+                else
+                {
+                    curState = GetStateByID(delta[curState._stateID, index]);
+                    maxLength++;
+                    flag = true;
+                    if (curState._stateType == 2)
+                    {
+                        isFinishState = true;
+                    }
+                    else
+                    {
+                        flag = false;
+                        isFinishState = false;
+                    }
+                }
+            }
+            if (isFinishState)
+            {
+                flag = true;
+            }
+            else
+            {
+                flag = false;
+            }
+
+            return new KeyValuePair<bool, int>(flag, maxLength);
+        }
+
+        public string Task1(string str)
+        {
+            var result = new List<string>();
+            Console.WriteLine("Последовательность: " + str);
+            int i = 0;
+            while (i < str.Length)
+            {
+                var tmp = MaxStr(str, i);
+                if (tmp.Key)
+                {
+                    result.Add($"substr: {str.Substring(i, tmp.Value)}\n");
+                    i += tmp.Value;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            return string.Concat(result);
         }
     }
 }

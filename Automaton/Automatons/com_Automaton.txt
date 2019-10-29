@@ -1,10 +1,10 @@
 0
+com
 S0 0 S1 1 S2 1 S3 2
 " ` 0 1 2 3 4 5 6 7 8 9 - _ = + ~ ! @ # $ % ^ & * ( ) q w e r t y u i o p [ ] a s d f g h j k l ; ' \ | : z x c v b n m , . < > / ? { }
-135
-S0 " S1
-S1 { S2
-S1 } S2
+133
+S0 { S1
+S1 " S2
 S1 ` S2
 S1 0 S2
 S1 1 S2
@@ -134,6 +134,5 @@ S2 > S2
 S2 / S2
 S2 ? S2
 S2 . S2
-S2 { S2
-S2 } S2
-S2 " S3
+S2 " S2
+S2 } S3

@@ -28,26 +28,32 @@ namespace Automaton
             }
         }
 
-        public Dictionary<string, string> AnalyzeStr(string str)
+        public List<string> AnalyzeStr(string str)
         {
-            var result = new Dictionary<string, string>();
+            var result = new List<string>();
             int i = 0;
             while (i < str.Length)
             {
                 var list = GetAutomatonsForCurrentSymbols(str[i]);
-                if (list.Count != 0)
+                if (list.Count > 0)
                 {
-                    var tmpAutomaton = GetAutomatonWithHighestPriority(list);
-                    var tmpToken = tmpAutomaton.MaxStr(str, i);
-                    if (tmpToken.Key)
+                    var tmpResults = new Dictionary<Automaton, KeyValuePair<bool, int>>();
+                    foreach (var item in list)
                     {
-                        result.Add("AutomatonName", $"substr: {str.Substring(i, tmpToken.Value)}\n");
-                        i += tmpToken.Value;
+                        var tmpToken = item.MaxStr(str, i);
+                        if (tmpToken.Key)
+                        {
+                            tmpResults.Add(item, tmpToken);
+                        }
                     }
-                    else
+                    List<Automaton> automatons = new List<Automaton>();
+                    foreach (var item in tmpResults.Keys)
                     {
-                        i++;
+                        automatons.Add(item);
                     }
+                    var automatonWithHighestPriority = GetAutomatonWithHighestPriority(automatons);
+                    result.Add($"<{automatonWithHighestPriority._automatonName},{str.Substring(i, tmpResults[automatonWithHighestPriority].Value)}>");
+                    i += tmpResults[automatonWithHighestPriority].Value;
                 }
                 else
                 {

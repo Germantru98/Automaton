@@ -10,7 +10,7 @@ namespace Automaton
         {
             using (StreamReader stream = new StreamReader(fileName, Encoding.Default))
             {
-                return stream.ReadLine();
+                return stream.ReadLine().ToLower();
             }
         }
 

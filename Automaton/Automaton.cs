@@ -7,6 +7,7 @@ namespace Automaton
 {
     internal class Automaton
     {
+        public string _automatonName { get; set; }
         public int _priority { get; private set; }
         public List<State> _q { get; private set; }//мн-во состояний
         public Dictionary<int, char> _sigma { get; private set; }// мн-во вх сигналов
@@ -14,7 +15,7 @@ namespace Automaton
 
         public override string ToString()
         {
-            Console.WriteLine("Automaton priority: {0}", _priority);
+            Console.WriteLine("Automaton: {0} priority: {1}", _automatonName, _priority);
             ShowAllStates();
             ShowAllInputSignals();
             ShowDelta();
@@ -27,6 +28,7 @@ namespace Automaton
             using (StreamReader stream = new StreamReader(filePath))
             {
                 _priority = int.Parse(stream.ReadLine());
+                _automatonName = stream.ReadLine();
                 var _states = stream.ReadLine().ToUpper().Trim().Split();
                 int _stateID = 0;
                 for (int i = 0; i < _states.Length - 1; i++)
@@ -230,7 +232,7 @@ namespace Automaton
                 var tmp = MaxStr(str, i);
                 if (tmp.Key)
                 {
-                    result.Add($"substr: {str.Substring(i, tmp.Value)}\n");
+                    result.Add($"{str.Substring(i, tmp.Value)}\n");
                     i += tmp.Value;
                 }
                 else

@@ -18,6 +18,7 @@ namespace Automaton
             _automatonStorage.Add("num", new Automaton("num_Automaton.txt"));
             _automatonStorage.Add("str", new Automaton("str_Automaton.txt"));
             _automatonStorage.Add("com", new Automaton("com_Automaton.txt"));
+            //_automatonStorage.Add("tab", new Automaton("tab_Automaton.txt"));
         }
 
         public void ShowAllAutomatons()
@@ -34,43 +35,52 @@ namespace Automaton
             int i = 0;
             while (i < str.Length)
             {
-                var list = GetAutomatonsForCurrentSymbols(str[i]);
-                if (list.Count > 0)
+                var automatonsAndRes = new Dictionary<Automaton, int>();
+                foreach (var item in _automatonStorage)
                 {
-                    var tmpResults = new Dictionary<Automaton, KeyValuePair<bool, int>>();
-                    foreach (var item in list)
+                    var tmpToken = item.Value.MaxStr(str, i);
+                    if (tmpToken.Key)
                     {
-                        var tmpToken = item.MaxStr(str, i);
-                        if (tmpToken.Key)
+                        automatonsAndRes.Add(item.Value, tmpToken.Value);
+                    }
+                }
+                if (automatonsAndRes.Count > 0)
+                {
+                    Dictionary<Automaton, int> tmpTokens = new Dictionary<Automaton, int>();
+                    int maxLength = 0;
+                    foreach (var item in automatonsAndRes)
+                    {
+                        if (item.Value > maxLength)
                         {
-                            tmpResults.Add(item, tmpToken);
+                            maxLength = item.Value;
                         }
                     }
-                    List<Automaton> automatons = new List<Automaton>();
-                    foreach (var item in tmpResults.Keys)
+                    foreach (var item in automatonsAndRes)
                     {
-                        automatons.Add(item);
+                        if (item.Value == maxLength && !tmpTokens.ContainsKey(item.Key))
+                        {
+                            tmpTokens.Add(item.Key, item.Value);
+                        }
                     }
-                    var automatonWithHighestPriority = GetAutomatonWithHighestPriority(automatons);
-                    result.Add($"<{automatonWithHighestPriority._automatonName},{str.Substring(i, tmpResults[automatonWithHighestPriority].Value)}>");
-                    i += tmpResults[automatonWithHighestPriority].Value;
+                    if (tmpTokens.Count > 0)
+                    {
+                        List<Automaton> automatons = new List<Automaton>();
+                        foreach (var item in tmpTokens.Keys)
+                        {
+                            automatons.Add(item);
+                        }
+                        var automatonWithHighestPriority = GetAutomatonWithHighestPriority(automatons);
+                        result.Add($"<{automatonWithHighestPriority._automatonName},{str.Substring(i, tmpTokens[automatonWithHighestPriority])}>");
+                        i += tmpTokens[automatonWithHighestPriority];
+                    }
                 }
                 else
                 {
+                    if (char.IsWhiteSpace(str[i]))
+                    {
+                        result.Add($"<ws, {str.Substring(i, 1)}>");
+                    }
                     i++;
-                }
-            }
-            return result;
-        }
-
-        private List<Automaton> GetAutomatonsForCurrentSymbols(char symbol)
-        {
-            var result = new List<Automaton>();
-            foreach (var item in _automatonStorage.Values)
-            {
-                if (item.isSymbolInSigma(symbol))
-                {
-                    result.Add(item);
                 }
             }
             return result;

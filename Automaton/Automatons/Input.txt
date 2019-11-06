@@ -1,1 +1,3 @@
-var abc := 123; {apikshdap}
+var abc := "123";
+string str := "322";
+	123

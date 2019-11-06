@@ -10,7 +10,11 @@ namespace Automaton
         {
             using (StreamReader stream = new StreamReader(fileName, Encoding.Default))
             {
-                return stream.ReadLine().ToLower();
+                StringBuilder s = new StringBuilder(stream.ReadToEnd().ToLower());
+                s.Replace("\n", "\\n");
+                s.Replace("\r", "\\r");
+                s.Replace("\t", "\\t");
+                return s.ToString();
             }
         }
 

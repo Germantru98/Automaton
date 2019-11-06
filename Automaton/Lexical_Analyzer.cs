@@ -18,6 +18,7 @@ namespace Automaton
             _automatonStorage.Add("num", new Automaton("num_Automaton.txt"));
             _automatonStorage.Add("str", new Automaton("str_Automaton.txt"));
             _automatonStorage.Add("com", new Automaton("com_Automaton.txt"));
+            _automatonStorage.Add("ws", new Automaton("ws_Automaton.txt"));
         }
 
         public void ShowAllAutomatons()

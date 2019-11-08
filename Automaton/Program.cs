@@ -14,6 +14,7 @@ namespace Automaton
                 s.Replace("\n", "\\n");
                 s.Replace("\r", "\\r");
                 s.Replace("\t", "\\t");
+                s.Replace(" ", "\\s");
                 return s.ToString();
             }
         }

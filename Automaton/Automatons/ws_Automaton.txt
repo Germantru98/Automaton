@@ -1,9 +1,14 @@
 0
 ws
-S0 0 S1 1 S2 2 S3 2 S4 2
-\ n r t
-4
+S0 0 S1 1 S2 2 S3 2 S4 2 S5 2
+\ n r t s
+9
 S0 \ S1
 S1 r S2
 S1 t S3
 S1 n S4
+S1 s S5
+S2 \ S1
+S3 \ S1
+S4 \ S1
+S5 \ S1

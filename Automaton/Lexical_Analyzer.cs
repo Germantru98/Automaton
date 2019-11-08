@@ -76,10 +76,6 @@ namespace Automaton
                 }
                 else
                 {
-                    if (char.IsWhiteSpace(str[i]))
-                    {
-                        result.Add($"<ws, {str.Substring(i, 1)}>");
-                    }
                     i++;
                 }
             }

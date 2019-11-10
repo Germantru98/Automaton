@@ -29,10 +29,8 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
-            var str = GetStr("Input.txt");
-            Lexical_Analyzer l = new Lexical_Analyzer();
-            var test = l.AnalyzeStr(str);
-            foreach (var item in test)
+            AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
+            foreach (var item in gen._regStorage)
             {
                 Console.WriteLine(item);
             }

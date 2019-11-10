@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Automaton
 {
@@ -93,6 +94,23 @@ namespace Automaton
                 }
             }
             return result;
+        }
+
+        private string StrTransform(string str)
+        {
+            StringBuilder s = new StringBuilder(str);
+            s.Replace("\n", "\\n");
+            s.Replace("\r", "\\r");
+            s.Replace("\t", "\\t");
+            s.Replace(" ", "\\s");
+            return s.ToString();
+        }
+
+        public List<string> Task_2(string str)
+        {
+            str = StrTransform(str);
+            var tokens = AnalyzeStr(str);
+            return tokens;
         }
     }
 }

@@ -132,7 +132,7 @@ namespace Automaton
             return result;
         }
 
-        private int CountNumberOfStates(string str)//Подсчет кол-ва состояний для 1-ой скобки(+1 т.к S0 не учитывается)
+        private int CountNumberOfStates(string str)//Подсчет кол-ва состояний для 1-ой скобки
         {
             int counter = 0;
             foreach (var item in str)
@@ -142,7 +142,7 @@ namespace Automaton
                     counter++;
                 }
             }
-            return counter + 1;
+            return counter;
         }
 
         private int CountNumberOfInputSignals(string str)
@@ -217,10 +217,109 @@ namespace Automaton
             return result;
         }
 
-        private int[,] GetDelta(int n, int m, List<State> states, Dictionary<int, char> sigma)
+        private List<char> GetControlCharsFromCurPart(string str)
+        {
+            List<char> result = new List<char>();
+            foreach (var item in str)
+            {
+                if (item != '\\' && item != '|')
+                {
+                    result.Add(item);
+                }
+            }
+            return result;
+        }
+
+        private int GetIdByChar(char c, Dictionary<int, char> sigma)
+        {
+            int result = -1;
+            foreach (var item in sigma)
+            {
+                if (c == item.Value)
+                {
+                    result = item.Key;
+                }
+            }
+            return result;
+        }
+
+        private int[,] GetDelta(int n, int m, List<State> states, Dictionary<int, char> sigma, List<string> regExpParts)
         {
             int[,] result = new int[n, m];
-
+            int pointer = 1;
+            List<int> iterationsPos = SearchStarInStr(regExpParts);
+            for (int i = 0; i < regExpParts.Count; i++)
+            {
+                var StartState = states[0];
+                if (regExpParts[i] != "*")
+                {
+                    if (!iterationsPos.Contains(i + 1))
+                    {
+                        var countOfStateInCurParts = CountNumberOfStates(regExpParts[i]);
+                        var tmpStates = new List<State>();
+                        for (int j = pointer; j < states.Count; j++)
+                        {
+                            if (pointer < states.Count)
+                            {
+                                tmpStates.Add(states[j]);
+                                pointer++;
+                                countOfStateInCurParts--;
+                            }
+                            if (countOfStateInCurParts == 0)
+                            {
+                                break;
+                            }
+                        }//берем состояния соотв текущей послед из скобки
+                        var chars = GetControlCharsFromCurPart(regExpParts[i]);//управляющие символы из текущей части
+                        int stateSelector = 0;
+                        foreach (var item in chars)
+                        {
+                            var curState = tmpStates[stateSelector];
+                            stateSelector++;
+                            var curSignals = _specialSymbols[$"\\{item}"];
+                            foreach (var item1 in curSignals)
+                            {
+                                int k = StartState._stateID; //ID состояния
+                                int l = GetIdByChar(item1, sigma);//ID сигнала
+                                result[k, l] = curState._stateID;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var countOfStateInCurParts = CountNumberOfStates(regExpParts[i]);
+                        var tmpStates = new List<State>();
+                        for (int j = pointer; j < states.Count; j++)
+                        {
+                            if (pointer < states.Count)
+                            {
+                                tmpStates.Add(states[j]);
+                                pointer++;
+                                countOfStateInCurParts--;
+                            }
+                            if (countOfStateInCurParts == 0)
+                            {
+                                break;
+                            }
+                        }//берем состояния соотв текущей послед из скобки
+                        var chars = GetControlCharsFromCurPart(regExpParts[i]);//управляющие символы из текущей части
+                        int stateSelector = 0;
+                        foreach (var item in chars)
+                        {
+                            var curState = tmpStates[stateSelector];
+                            stateSelector++;
+                            var curSignals = _specialSymbols[$"\\{item}"];
+                            foreach (var item1 in curSignals)
+                            {
+                                int k = StartState._stateID; //ID состояния
+                                int l = GetIdByChar(item1, sigma);//ID сигнала
+                                result[k, l] = curState._stateID;
+                                result[curState._stateID, l] = curState._stateID;
+                            }
+                        }
+                    }
+                }
+            }
             return result;
         }
 
@@ -230,10 +329,11 @@ namespace Automaton
             int automatonPriority = regularExpression._regPriority;
             var states = CreateStatesForAutomaton(SplitByBrackets(regularExpression._regExpression));
             var removeBrekets = string.Concat(SplitByBrackets(regularExpression._regExpression));
-            int n = CountNumberOfStates(removeBrekets);
+            var list = SplitByBrackets(regularExpression._regExpression);
+            int n = CountNumberOfStates(removeBrekets) + 1;
             int m = CountNumberOfInputSignals(removeBrekets);
             var sigma = CreateSigma(removeBrekets);
-            int[,] delta = GetDelta(n, m, states, sigma);
+            int[,] delta = GetDelta(n, m, states, sigma, list);
             return new Automaton(automatonName, automatonPriority, states, sigma, delta);
         }
     }

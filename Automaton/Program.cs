@@ -28,9 +28,11 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
+            var str = GetStr("Input.txt");
             AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
             var automaton = gen.GetAutomatonByRE(gen._regStorage[0]);
             System.Console.WriteLine(automaton);
+            System.Console.WriteLine(automaton.Task1(str));
         }
     }
 }

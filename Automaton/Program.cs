@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace Automaton
@@ -30,10 +29,8 @@ namespace Automaton
         private static void Main(string[] args)
         {
             AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
-            foreach (var item in gen._regStorage)
-            {
-                Console.WriteLine(item);
-            }
+            var automaton = gen.GetAutomatonByRE(gen._regStorage[0]);
+            System.Console.WriteLine(automaton);
         }
     }
 }

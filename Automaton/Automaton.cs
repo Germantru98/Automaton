@@ -22,6 +22,19 @@ namespace Automaton
             return string.Empty;
         }
 
+        public Automaton(string automatonName, int priority, List<State> q, Dictionary<int, char> sigma, int[,] delta)
+        {
+            _automatonName = automatonName;
+            _priority = priority;
+            _q = q;
+            _sigma = sigma;
+            _delta = delta;
+        }
+
+        public Automaton()
+        {
+        }
+
         public Automaton(string filePath)
         {
             _q = new List<State>();

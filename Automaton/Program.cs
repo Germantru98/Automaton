@@ -9,12 +9,7 @@ namespace Automaton
         {
             using (StreamReader stream = new StreamReader(fileName, Encoding.Default))
             {
-                StringBuilder s = new StringBuilder(stream.ReadToEnd().ToLower());
-                s.Replace("\n", "\\n");
-                s.Replace("\r", "\\r");
-                s.Replace("\t", "\\t");
-                s.Replace(" ", "\\s");
-                return s.ToString();
+                return stream.ReadToEnd();
             }
         }
 
@@ -30,7 +25,9 @@ namespace Automaton
         {
             var str = GetStr("Input.txt");
             AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
-            var automaton = gen.GetAutomatonByRE(gen._regStorage[0]);
+            var regExp = gen._regStorage[0];
+            System.Console.WriteLine(regExp);
+            var automaton = gen.GetAutomaton(regExp);
             System.Console.WriteLine(automaton);
             System.Console.WriteLine(automaton.Task1(str));
         }

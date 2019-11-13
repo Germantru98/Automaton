@@ -336,5 +336,88 @@ namespace Automaton
             int[,] delta = GetDelta(n, m, states, sigma, list);
             return new Automaton(automatonName, automatonPriority, states, sigma, delta);
         }
+
+        public Automaton GetAutomaton(RegularExpression regularExpression)
+        {
+            var splitByBreckets = SplitByBrackets(regularExpression._regExpression);
+            List<int> iterationsPos = SearchStarInStr(splitByBreckets);
+            var sigma = CreateSigma(string.Concat(splitByBreckets));
+            int n = CountNumberOfStates(string.Concat(splitByBreckets)) + 1;
+            int m = CountNumberOfInputSignals(string.Concat(splitByBreckets));
+            int[,] delta = new int[n, m];
+            var states = CreateStatesForAutomaton(splitByBreckets);
+            var starPos = SearchStarInStr(splitByBreckets);
+            for (int i = 0; i < splitByBreckets.Count; i++)//цикл проходит по содержимому скобок
+            {
+                if (splitByBreckets[i] != "*")
+                {
+                    if (!iterationsPos.Contains(i + 1))
+                    {
+                        int curFinsihState = 1;
+                        var splitByVB = SplitByVerticalBar(splitByBreckets[i]);//делим содержимое текущей скобки на части между  |
+                        for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
+                        {
+                            int curStartState = 0;
+                            var controlSybols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
+                            int count = controlSybols.Count;
+                            for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
+                            {
+                                var curSymbol = controlSybols[k];
+
+                                var curSignals = _specialSymbols[$"\\{curSymbol}"];
+                                foreach (var item in curSignals)
+                                {
+                                    int curCharID = GetIdByChar(item, sigma);
+                                    delta[curStartState, curCharID] = curFinsihState;
+                                }
+                                curStartState++;
+                                curFinsihState++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int curFinsihState = 1;
+                        Dictionary<string, int> pairs = new Dictionary<string, int>();
+                        var splitByVB = SplitByVerticalBar(splitByBreckets[i]);//делим содержимое текущей скобки на части между  |
+                        for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
+                        {
+                            int curStartState = 0;
+                            var controlSybols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
+                            int count = controlSybols.Count;
+                            for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
+                            {
+                                var curSymbol = controlSybols[k];
+
+                                var curSignals = _specialSymbols[$"\\{curSymbol}"];
+                                foreach (var item in curSignals)
+                                {
+                                    int curCharID = GetIdByChar(item, sigma);
+                                    delta[curStartState, curCharID] = curFinsihState;
+                                }
+                                pairs.Add(curSymbol.ToString(), curFinsihState);
+                                curStartState++;
+                                curFinsihState++;
+                            }
+                            foreach (var x in pairs)
+                            {
+                                foreach (var z in pairs)
+                                {
+                                    var curSignals = _specialSymbols[$"\\{z.Key}"];
+                                    foreach (var item in curSignals)
+                                    {
+                                        int curCharID = GetIdByChar(item, sigma);
+                                        delta[x.Value, curCharID] = z.Value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            var result = new Automaton(regularExpression._regName, regularExpression._regPriority, states, sigma, delta);
+            return result;
+        }
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Automaton
 {
-    internal class Automaton
+    public class Automaton
     {
         public string _automatonName { get; set; }
         public int _priority { get; private set; }

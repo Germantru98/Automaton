@@ -22,6 +22,15 @@ namespace Automaton
             _automatonStorage.Add("ws", new Automaton("ws_Automaton.txt"));
         }
 
+        public Lexical_Analyzer(List<Automaton> automatons)
+        {
+            _automatonStorage = new Dictionary<string, Automaton>();
+            foreach (var item in automatons)
+            {
+                _automatonStorage.Add(item._automatonName, item);
+            }
+        }
+
         public void ShowAllAutomatons()
         {
             foreach (var item in _automatonStorage)

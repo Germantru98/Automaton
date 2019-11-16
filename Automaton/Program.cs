@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Automaton
@@ -28,8 +29,14 @@ namespace Automaton
             var regExp = gen._regStorage[0];
             System.Console.WriteLine(regExp);
             var automaton = gen.GetAutomaton(regExp);
-            System.Console.WriteLine(automaton);
-            System.Console.WriteLine(automaton.Task1(str));
+            List<Automaton> automatons = new List<Automaton>();
+            automatons.Add(automaton);
+            Lexical_Analyzer lexical_Analyzer = new Lexical_Analyzer(automatons);
+            var result = lexical_Analyzer.Task_2(str);
+            foreach (var item in result)
+            {
+                System.Console.WriteLine(item);
+            }
         }
     }
 }

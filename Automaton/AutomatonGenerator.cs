@@ -243,98 +243,17 @@ namespace Automaton
             return result;
         }
 
-        private int[,] GetDelta(int n, int m, List<State> states, Dictionary<int, char> sigma, List<string> regExpParts)
+        private State GetStateByID(List<State> states, int id)
         {
-            int[,] result = new int[n, m];
-            int pointer = 1;
-            List<int> iterationsPos = SearchStarInStr(regExpParts);
-            for (int i = 0; i < regExpParts.Count; i++)
+            State result = new State(0, 0, "S0");
+            foreach (var item in states)
             {
-                var StartState = states[0];
-                if (regExpParts[i] != "*")
+                if (item._stateID == id)
                 {
-                    if (!iterationsPos.Contains(i + 1))
-                    {
-                        var countOfStateInCurParts = CountNumberOfStates(regExpParts[i]);
-                        var tmpStates = new List<State>();
-                        for (int j = pointer; j < states.Count; j++)
-                        {
-                            if (pointer < states.Count)
-                            {
-                                tmpStates.Add(states[j]);
-                                pointer++;
-                                countOfStateInCurParts--;
-                            }
-                            if (countOfStateInCurParts == 0)
-                            {
-                                break;
-                            }
-                        }//берем состояния соотв текущей послед из скобки
-                        var chars = GetControlCharsFromCurPart(regExpParts[i]);//управляющие символы из текущей части
-                        int stateSelector = 0;
-                        foreach (var item in chars)
-                        {
-                            var curState = tmpStates[stateSelector];
-                            stateSelector++;
-                            var curSignals = _specialSymbols[$"\\{item}"];
-                            foreach (var item1 in curSignals)
-                            {
-                                int k = StartState._stateID; //ID состояния
-                                int l = GetIdByChar(item1, sigma);//ID сигнала
-                                result[k, l] = curState._stateID;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var countOfStateInCurParts = CountNumberOfStates(regExpParts[i]);
-                        var tmpStates = new List<State>();
-                        for (int j = pointer; j < states.Count; j++)
-                        {
-                            if (pointer < states.Count)
-                            {
-                                tmpStates.Add(states[j]);
-                                pointer++;
-                                countOfStateInCurParts--;
-                            }
-                            if (countOfStateInCurParts == 0)
-                            {
-                                break;
-                            }
-                        }//берем состояния соотв текущей послед из скобки
-                        var chars = GetControlCharsFromCurPart(regExpParts[i]);//управляющие символы из текущей части
-                        int stateSelector = 0;
-                        foreach (var item in chars)
-                        {
-                            var curState = tmpStates[stateSelector];
-                            stateSelector++;
-                            var curSignals = _specialSymbols[$"\\{item}"];
-                            foreach (var item1 in curSignals)
-                            {
-                                int k = StartState._stateID; //ID состояния
-                                int l = GetIdByChar(item1, sigma);//ID сигнала
-                                result[k, l] = curState._stateID;
-                                result[curState._stateID, l] = curState._stateID;
-                            }
-                        }
-                    }
+                    result = item;
                 }
             }
             return result;
-        }
-
-        public Automaton GetAutomatonByRE(RegularExpression regularExpression)
-        {
-            string automatonName = regularExpression._regName;
-            int automatonPriority = regularExpression._regPriority;
-            var states = CreateStatesForAutomaton(SplitByBrackets(regularExpression._regExpression));
-            var removeBrekets = string.Concat(SplitByBrackets(regularExpression._regExpression));
-            var list = SplitByBrackets(regularExpression._regExpression);
-            int n = CountNumberOfStates(removeBrekets) + 1;
-            int m = CountNumberOfInputSignals(removeBrekets);
-            var sigma = CreateSigma(removeBrekets);
-            int[,] delta = GetDelta(n, m, states, sigma, list);
-            return new Automaton(automatonName, automatonPriority, states, sigma, delta);
         }
 
         public Automaton GetAutomaton(RegularExpression regularExpression)
@@ -346,18 +265,20 @@ namespace Automaton
             int m = CountNumberOfInputSignals(string.Concat(splitByBreckets));
             int[,] delta = new int[n, m];
             var states = CreateStatesForAutomaton(splitByBreckets);
-            var starPos = SearchStarInStr(splitByBreckets);
+            Queue<State> tempStates = new Queue<State>();
+            tempStates.Enqueue(GetStateByID(states, 0));//добавляем в стартовые состояние состояние S0;
             for (int i = 0; i < splitByBreckets.Count; i++)//цикл проходит по содержимому скобок
             {
-                if (splitByBreckets[i] != "*")
+                var tmpStartPos = tempStates.Dequeue()._stateID;
+                if (splitByBreckets[i] != "*")//проверяем не явл ли текущая часть *
                 {
-                    if (!iterationsPos.Contains(i + 1))
+                    int curStartState = tmpStartPos;
+                    int curFinsihState = curStartState + 1;
+                    if (!iterationsPos.Contains(i + 1))//проверяем не явл след часть *
                     {
-                        int curFinsihState = 1;
                         var splitByVB = SplitByVerticalBar(splitByBreckets[i]);//делим содержимое текущей скобки на части между  |
                         for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
                         {
-                            int curStartState = 0;
                             var controlSybols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
                             int count = controlSybols.Count;
                             for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
@@ -370,19 +291,28 @@ namespace Automaton
                                     int curCharID = GetIdByChar(item, sigma);
                                     delta[curStartState, curCharID] = curFinsihState;
                                 }
-                                curStartState++;
-                                curFinsihState++;
+                                var tmpState = GetStateByID(states, curFinsihState);
+                                if (tmpState._stateType == 2)//проверка на конечное состояние
+                                {
+                                    tempStates.Enqueue(tmpState);
+                                }
+                                else
+                                {
+                                    curStartState++;
+                                    curFinsihState++;
+                                }
                             }
                         }
                     }
                     else
                     {
-                        int curFinsihState = 1;
+                        //Переход в текущую область происходит если после скобки есть звездочка (*) Данный кусок практически не отличается
+                        //от части где нет *, за исключением одного добавленного куска кода в конце.
                         Dictionary<string, int> pairs = new Dictionary<string, int>();
                         var splitByVB = SplitByVerticalBar(splitByBreckets[i]);//делим содержимое текущей скобки на части между  |
                         for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
                         {
-                            int curStartState = 0;
+                            //
                             var controlSybols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
                             int count = controlSybols.Count;
                             for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
@@ -395,12 +325,20 @@ namespace Automaton
                                     int curCharID = GetIdByChar(item, sigma);
                                     delta[curStartState, curCharID] = curFinsihState;
                                 }
-                                pairs.Add(curSymbol.ToString(), curFinsihState);
-                                curStartState++;
-                                curFinsihState++;
+                                pairs.Add(curSymbol.ToString(), curFinsihState);//заведен словарь где хранится упр символ - айди состояния к которому привязан данный символ
+                                var tmpState = GetStateByID(states, curFinsihState);
+                                if (tmpState._stateType == 2)//проверка на конечное состояние
+                                {
+                                    tempStates.Enqueue(tmpState);
+                                }
+                                else
+                                {
+                                    curStartState++;
+                                    curFinsihState++;
+                                }
                             }
-                            foreach (var x in pairs)
-                            {
+                            foreach (var x in pairs)// в двойном цикле проходим по элементам словаря и добавляем переходы между состояними по их управляющим символам.
+                            {                       // проще говоря соединяем между собой состояния соотв сигналами , а также добавляем "петли".
                                 foreach (var z in pairs)
                                 {
                                     var curSignals = _specialSymbols[$"\\{z.Key}"];

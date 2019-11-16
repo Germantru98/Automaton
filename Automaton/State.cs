@@ -1,6 +1,6 @@
 ﻿namespace Automaton
 {
-    internal class State
+    public class State
     {
         public int _stateID { get; set; }
         public int _stateType { get; set; }//начальное - 0 или конечное - 1 или 2

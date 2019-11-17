@@ -47,7 +47,9 @@
   <ItemGroup>
     <Compile Include="Automaton.cs" />
     <Compile Include="AutomatonGenerator.cs" />
+    <Compile Include="Class1.cs" />
     <Compile Include="Lexical_Analyzer.cs" />
+    <Compile Include="MatrixHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegularExpression.cs" />

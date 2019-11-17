@@ -8,6 +8,8 @@ namespace Automaton
     {
         public List<RegularExpression> _regStorage { get; private set; }
         public Dictionary<string, List<char>> _specialSymbols { get; private set; }
+        private int scount = 0;
+        private MatrixHandler matrixHandler = new MatrixHandler();
 
         public AutomatonGenerator(string fileName)
         {
@@ -132,7 +134,7 @@ namespace Automaton
             return result;
         }
 
-        private int CountNumberOfStates(string str)//Подсчет кол-ва состояний для 1-ой скобки
+        private int CountNumberOfStates(string str)//придумать новый вариант для поиска состояний
         {
             int counter = 0;
             foreach (var item in str)
@@ -142,7 +144,7 @@ namespace Automaton
                     counter++;
                 }
             }
-            return counter;
+            return counter + 1;
         }
 
         private int CountNumberOfInputSignals(string str)
@@ -162,35 +164,6 @@ namespace Automaton
             }
             return counter;
         }//Подсчет кол-ва входных сигналов для всей регулярки
-
-        private List<State> CreateStatesForAutomaton(List<string> parts)
-        {
-            List<State> states = new List<State>();
-            states.Add(new State(0, 0, "S0"));
-            int stateID = 1;
-            foreach (var item in parts)
-            {
-                if (item != "*")
-                {
-                    var splitByVerBar = SplitByVerticalBar(item);
-                    foreach (var i in splitByVerBar)
-                    {
-                        var symbols = SplitByBackslash(i);
-                        for (int s = 0; s < symbols.Count; s++)
-                        {
-                            int statePos = 1;
-                            if (s == symbols.Count - 1)
-                            {
-                                statePos = 2;
-                            }
-                            states.Add(new State(stateID, statePos, $"S{stateID}"));
-                            stateID++;
-                        }
-                    }
-                }
-            }
-            return states;
-        }
 
         private Dictionary<int, char> CreateSigma(string str)
         {
@@ -258,102 +231,151 @@ namespace Automaton
 
         public Automaton GetAutomaton(RegularExpression regularExpression)
         {
+            int stateCounter = 1;
             var splitByBreckets = SplitByBrackets(regularExpression._regExpression);
             List<int> iterationsPos = SearchStarInStr(splitByBreckets);
             var sigma = CreateSigma(string.Concat(splitByBreckets));
-            int n = CountNumberOfStates(string.Concat(splitByBreckets)) + 1;
+            int n = CountNumberOfStates(string.Concat(splitByBreckets))+1;//ОШИБКА ТУТ В ЭТОМ МЕТОДЕ
             int m = CountNumberOfInputSignals(string.Concat(splitByBreckets));
             int[,] delta = new int[n, m];
-            var states = CreateStatesForAutomaton(splitByBreckets);
+            System.Console.WriteLine("n = {0} m = {1}", n, m);
+            var states = new List<State>();
+            states.Add(new State(0, 0, "S0"));
             Queue<State> tempStates = new Queue<State>();
             tempStates.Enqueue(GetStateByID(states, 0));//добавляем в стартовые состояние состояние S0;
+            int curStartState;
+            var curStateStorage = new List<State>();//для каждой итерации храним в очереди все конечные состояние из прошлой
             for (int i = 0; i < splitByBreckets.Count; i++)//цикл проходит по содержимому скобок
             {
-                var tmpStartPos = tempStates.Dequeue()._stateID;
-                if (splitByBreckets[i] != "*")//проверяем не явл ли текущая часть *
+                curStateStorage.Clear();
+                while (tempStates.Count > 0)
                 {
-                    int curStartState = tmpStartPos;
-                    int curFinsihState = curStartState + 1;
-                    if (!iterationsPos.Contains(i + 1))//проверяем не явл след часть *
+                    var ts = tempStates.Dequeue();
+                    curStateStorage.Add(ts);
+                    System.Console.WriteLine("Достали из очереди в лист {0}", ts._stateID);
+                }
+                System.Console.WriteLine(curStateStorage.Count);
+                foreach (var state in curStateStorage)
+                {
+                    if (splitByBreckets[i] != "*")//проверяем не явл ли текущая часть *
                     {
-                        var splitByVB = SplitByVerticalBar(splitByBreckets[i]);//делим содержимое текущей скобки на части между  |
-                        for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
+                        curStartState = state._stateID;
+                        int curFinsihState;
+                        if (!iterationsPos.Contains(i + 1))//проверяем не явл след часть *
                         {
-                            var controlSybols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
-                            int count = controlSybols.Count;
-                            for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
+                            var splitByVB = SplitByVerticalBar(splitByBreckets[i]);
+                            for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
                             {
-                                var curSymbol = controlSybols[k];
-
-                                var curSignals = _specialSymbols[$"\\{curSymbol}"];
-                                foreach (var item in curSignals)
+                                curStartState = state._stateID;
+                                System.Console.WriteLine("Для {0} CSS = {1}", splitByVB[j], curStartState);
+                                var controlSymbols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
+                                int count = controlSymbols.Count;
+                                for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
                                 {
-                                    int curCharID = GetIdByChar(item, sigma);
-                                    delta[curStartState, curCharID] = curFinsihState;
-                                }
-                                var tmpState = GetStateByID(states, curFinsihState);
-                                if (tmpState._stateType == 2)//проверка на конечное состояние
-                                {
-                                    tempStates.Enqueue(tmpState);
-                                }
-                                else
-                                {
-                                    curStartState++;
-                                    curFinsihState++;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Переход в текущую область происходит если после скобки есть звездочка (*) Данный кусок практически не отличается
-                        //от части где нет *, за исключением одного добавленного куска кода в конце.
-                        Dictionary<string, int> pairs = new Dictionary<string, int>();
-                        var splitByVB = SplitByVerticalBar(splitByBreckets[i]);//делим содержимое текущей скобки на части между  |
-                        for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
-                        {
-                            //
-                            var controlSybols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
-                            int count = controlSybols.Count;
-                            for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
-                            {
-                                var curSymbol = controlSybols[k];
-
-                                var curSignals = _specialSymbols[$"\\{curSymbol}"];
-                                foreach (var item in curSignals)
-                                {
-                                    int curCharID = GetIdByChar(item, sigma);
-                                    delta[curStartState, curCharID] = curFinsihState;
-                                }
-                                pairs.Add(curSymbol.ToString(), curFinsihState);//заведен словарь где хранится упр символ - айди состояния к которому привязан данный символ
-                                var tmpState = GetStateByID(states, curFinsihState);
-                                if (tmpState._stateType == 2)//проверка на конечное состояние
-                                {
-                                    tempStates.Enqueue(tmpState);
-                                }
-                                else
-                                {
-                                    curStartState++;
-                                    curFinsihState++;
-                                }
-                            }
-                            foreach (var x in pairs)// в двойном цикле проходим по элементам словаря и добавляем переходы между состояними по их управляющим символам.
-                            {                       // проще говоря соединяем между собой состояния соотв сигналами , а также добавляем "петли".
-                                foreach (var z in pairs)
-                                {
-                                    var curSignals = _specialSymbols[$"\\{z.Key}"];
+                                    var curSymbol = controlSymbols[k];
+                                    if (i == splitByBreckets.Count - 1)
+                                    {
+                                        if (j < count - 1)
+                                        {
+                                            var newState = new State(stateCounter, 1, $"S{stateCounter}");
+                                            states.Add(newState);
+                                            stateCounter++;
+                                            curFinsihState = newState._stateID;
+                                            scount++;
+                                            //matrixHandler.AddLine(new int[m], delta);
+                                        }
+                                        else
+                                        {
+                                            var newState = new State(stateCounter, 2, $"S{stateCounter}");
+                                            states.Add(newState);
+                                            stateCounter++;
+                                            curFinsihState = newState._stateID;
+                                            scount++;
+                                            //matrixHandler.AddLine(new int[m], delta);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var newState = new State(stateCounter, 1, $"S{stateCounter}");
+                                        states.Add(newState);
+                                        stateCounter++;
+                                        curFinsihState = newState._stateID;
+                                        scount++;
+                                       // matrixHandler.AddLine(new int[m], delta);
+                                    }
+                                    var curSignals = _specialSymbols[$"\\{curSymbol}"];
                                     foreach (var item in curSignals)
                                     {
                                         int curCharID = GetIdByChar(item, sigma);
-                                        delta[x.Value, curCharID] = z.Value;
+                                        delta[curStartState, curCharID] = curFinsihState;
                                     }
+                                    var tmpState = GetStateByID(states, curFinsihState);
+                                    tempStates.Enqueue(tmpState);
+                                    System.Console.WriteLine("помещаем {0}", tmpState);
+                                    System.Console.WriteLine("для {0} CFS = {1}", curSymbol, curFinsihState);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var splitByVB = SplitByVerticalBar(splitByBreckets[i]);
+                            for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
+                            {
+                                curStartState = state._stateID;
+                                System.Console.WriteLine("Для {0} CSS = {1}", splitByVB[j], curStartState);
+                                var controlSymbols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
+                                int count = controlSymbols.Count;
+                                for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
+                                {
+                                    var curSymbol = controlSymbols[k];
+                                    if (i == splitByBreckets.Count - 1)
+                                    {
+                                        if (j < count - 1)
+                                        {
+                                            var newState = new State(stateCounter, 1, $"S{stateCounter}");
+                                            states.Add(newState);
+                                            stateCounter++;
+                                            curFinsihState = newState._stateID;
+                                            scount++;
+                                            //matrixHandler.AddLine(new int[m], delta);
+                                        }
+                                        else
+                                        {
+                                            var newState = new State(stateCounter, 2, $"S{stateCounter}");
+                                            states.Add(newState);
+                                            stateCounter++;
+                                            curFinsihState = newState._stateID;
+                                            scount++;
+                                            //matrixHandler.AddLine(new int[m], delta);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var newState = new State(stateCounter, 1, $"S{stateCounter}");
+                                        states.Add(newState);
+                                        stateCounter++;
+                                        curFinsihState = newState._stateID;
+                                        scount++;
+                                        // matrixHandler.AddLine(new int[m], delta);
+                                    }
+                                    var curSignals = _specialSymbols[$"\\{curSymbol}"];
+                                    foreach (var item in curSignals)
+                                    {
+                                        int curCharID = GetIdByChar(item, sigma);
+                                        delta[curStartState, curCharID] = curFinsihState;
+                                        delta[curFinsihState, curCharID] = curFinsihState;
+                                    }
+                                    var tmpState = GetStateByID(states, curFinsihState);
+                                    tempStates.Enqueue(tmpState);
+                                    System.Console.WriteLine("помещаем {0}", tmpState);
+                                    System.Console.WriteLine("для {0} CFS = {1}", curSymbol, curFinsihState);
                                 }
                             }
                         }
                     }
                 }
             }
-
+            System.Console.WriteLine(scount);
             var result = new Automaton(regularExpression._regName, regularExpression._regPriority, states, sigma, delta);
             return result;
         }

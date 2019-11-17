@@ -164,6 +164,7 @@ namespace Automaton
             {
                 result[k] = _delta[state._stateID, k];
             }
+
             return result;
         }
 
@@ -186,7 +187,7 @@ namespace Automaton
             int maxLength = 0;
             State curState = GetStartState();
             int[,] delta = _delta;
-            bool isFinishState = false;
+            bool isFinishState;
             if (curState._stateType == 2)
             {
                 isFinishState = true;

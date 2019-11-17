@@ -33,10 +33,13 @@ namespace Automaton
             automatons.Add(automaton);
             Lexical_Analyzer lexical_Analyzer = new Lexical_Analyzer(automatons);
             var result = lexical_Analyzer.Task_2(str);
+            System.Console.WriteLine("RESULT: ");
             foreach (var item in result)
             {
                 System.Console.WriteLine(item);
             }
+
+            System.Console.WriteLine("\n"+automaton);
         }
     }
 }

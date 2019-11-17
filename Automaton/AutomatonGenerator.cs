@@ -8,7 +8,7 @@ namespace Automaton
     {
         public List<RegularExpression> _regStorage { get; private set; }
         public Dictionary<string, List<char>> _specialSymbols { get; private set; }
-        private int scount = 0;
+
         private MatrixHandler matrixHandler = new MatrixHandler();
 
         public AutomatonGenerator(string fileName)
@@ -134,19 +134,6 @@ namespace Automaton
             return result;
         }
 
-        private int CountNumberOfStates(string str)//придумать новый вариант для поиска состояний
-        {
-            int counter = 0;
-            foreach (var item in str)
-            {
-                if (item != '|' && item != '\\' && item != '*')
-                {
-                    counter++;
-                }
-            }
-            return counter + 1;
-        }
-
         private int CountNumberOfInputSignals(string str)
         {
             int counter = 0;
@@ -235,10 +222,9 @@ namespace Automaton
             var splitByBreckets = SplitByBrackets(regularExpression._regExpression);
             List<int> iterationsPos = SearchStarInStr(splitByBreckets);
             var sigma = CreateSigma(string.Concat(splitByBreckets));
-            int n = CountNumberOfStates(string.Concat(splitByBreckets))+1;//ОШИБКА ТУТ В ЭТОМ МЕТОДЕ
+            int n = 1;
             int m = CountNumberOfInputSignals(string.Concat(splitByBreckets));
             int[,] delta = new int[n, m];
-            System.Console.WriteLine("n = {0} m = {1}", n, m);
             var states = new List<State>();
             states.Add(new State(0, 0, "S0"));
             Queue<State> tempStates = new Queue<State>();
@@ -254,7 +240,6 @@ namespace Automaton
                     curStateStorage.Add(ts);
                     System.Console.WriteLine("Достали из очереди в лист {0}", ts._stateID);
                 }
-                System.Console.WriteLine(curStateStorage.Count);
                 foreach (var state in curStateStorage)
                 {
                     if (splitByBreckets[i] != "*")//проверяем не явл ли текущая часть *
@@ -281,8 +266,7 @@ namespace Automaton
                                             states.Add(newState);
                                             stateCounter++;
                                             curFinsihState = newState._stateID;
-                                            scount++;
-                                            //matrixHandler.AddLine(new int[m], delta);
+                                            delta = matrixHandler.AddLine(new int[m], delta);
                                         }
                                         else
                                         {
@@ -290,8 +274,7 @@ namespace Automaton
                                             states.Add(newState);
                                             stateCounter++;
                                             curFinsihState = newState._stateID;
-                                            scount++;
-                                            //matrixHandler.AddLine(new int[m], delta);
+                                            delta = matrixHandler.AddLine(new int[m], delta);
                                         }
                                     }
                                     else
@@ -300,8 +283,7 @@ namespace Automaton
                                         states.Add(newState);
                                         stateCounter++;
                                         curFinsihState = newState._stateID;
-                                        scount++;
-                                       // matrixHandler.AddLine(new int[m], delta);
+                                        delta = matrixHandler.AddLine(new int[m], delta);
                                     }
                                     var curSignals = _specialSymbols[$"\\{curSymbol}"];
                                     foreach (var item in curSignals)
@@ -318,6 +300,7 @@ namespace Automaton
                         }
                         else
                         {
+                            Dictionary<string, int> pairs = new Dictionary<string, int>();
                             var splitByVB = SplitByVerticalBar(splitByBreckets[i]);
                             for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
                             {
@@ -328,7 +311,7 @@ namespace Automaton
                                 for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
                                 {
                                     var curSymbol = controlSymbols[k];
-                                    if (i == splitByBreckets.Count - 1)
+                                    if (i == splitByBreckets.Count - 2)
                                     {
                                         if (j < count - 1)
                                         {
@@ -336,8 +319,7 @@ namespace Automaton
                                             states.Add(newState);
                                             stateCounter++;
                                             curFinsihState = newState._stateID;
-                                            scount++;
-                                            //matrixHandler.AddLine(new int[m], delta);
+                                            delta = matrixHandler.AddLine(new int[m], delta);
                                         }
                                         else
                                         {
@@ -345,8 +327,7 @@ namespace Automaton
                                             states.Add(newState);
                                             stateCounter++;
                                             curFinsihState = newState._stateID;
-                                            scount++;
-                                            //matrixHandler.AddLine(new int[m], delta);
+                                            delta = matrixHandler.AddLine(new int[m], delta);
                                         }
                                     }
                                     else
@@ -355,27 +336,37 @@ namespace Automaton
                                         states.Add(newState);
                                         stateCounter++;
                                         curFinsihState = newState._stateID;
-                                        scount++;
-                                        // matrixHandler.AddLine(new int[m], delta);
+                                        delta = matrixHandler.AddLine(new int[m], delta);
                                     }
                                     var curSignals = _specialSymbols[$"\\{curSymbol}"];
                                     foreach (var item in curSignals)
                                     {
                                         int curCharID = GetIdByChar(item, sigma);
                                         delta[curStartState, curCharID] = curFinsihState;
-                                        delta[curFinsihState, curCharID] = curFinsihState;
                                     }
+                                    pairs.Add(curSymbol.ToString(), curFinsihState);
                                     var tmpState = GetStateByID(states, curFinsihState);
                                     tempStates.Enqueue(tmpState);
                                     System.Console.WriteLine("помещаем {0}", tmpState);
                                     System.Console.WriteLine("для {0} CFS = {1}", curSymbol, curFinsihState);
                                 }
                             }
+                            foreach (var x in pairs)// в двойном цикле проходим по элементам словаря и добавляем переходы между состояними по их управляющим символам.
+                            {                       // проще говоря соединяем между собой состояния соотв сигналами , а также добавляем "петли".
+                                foreach (var z in pairs)
+                                {
+                                    var curSignals = _specialSymbols[$"\\{z.Key}"];
+                                    foreach (var item in curSignals)
+                                    {
+                                        int curCharID = GetIdByChar(item, sigma);
+                                        delta[x.Value, curCharID] = z.Value;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-            System.Console.WriteLine(scount);
             var result = new Automaton(regularExpression._regName, regularExpression._regPriority, states, sigma, delta);
             return result;
         }

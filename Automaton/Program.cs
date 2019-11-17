@@ -39,7 +39,7 @@ namespace Automaton
                 System.Console.WriteLine(item);
             }
 
-            System.Console.WriteLine("\n"+automaton);
+            System.Console.WriteLine("\n" + automaton);
         }
     }
 }

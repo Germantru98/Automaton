@@ -80,7 +80,9 @@ namespace Automaton
                             automatons.Add(item);
                         }
                         var automatonWithHighestPriority = GetAutomatonWithHighestPriority(automatons);
-                        result.Add($"<{automatonWithHighestPriority._automatonName},{str.Substring(i, tmpTokens[automatonWithHighestPriority])}>");
+                        var tmpSubstring = str.Substring(i, tmpTokens[automatonWithHighestPriority]);
+                        tmpSubstring = StrTransform(tmpSubstring);
+                        result.Add($"<{automatonWithHighestPriority._automatonName},{tmpSubstring}>");
                         i += tmpTokens[automatonWithHighestPriority];
                     }
                 }
@@ -108,16 +110,15 @@ namespace Automaton
         private string StrTransform(string str)
         {
             StringBuilder s = new StringBuilder(str);
-            //s.Replace("\n", "\\n");
-            //s.Replace("\r", "\\r");
-            //s.Replace("\t", "\\t");
-            //s.Replace(" ", "\\s");
+            s.Replace("\n", "\\n");
+            s.Replace("\r", "\\r");
+            s.Replace("\t", "\\t");
+            s.Replace(" ", "\\s");
             return s.ToString();
         }
 
         public List<string> Task_2(string str)
         {
-            str = StrTransform(str);
             var tokens = AnalyzeStr(str);
             return tokens;
         }

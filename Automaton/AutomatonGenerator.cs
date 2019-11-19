@@ -73,6 +73,8 @@ namespace Automaton
             _specialSymbols.Add("\\d", getChars("Digits.txt", 0));
             _specialSymbols.Add("\\s", getWS());
             _specialSymbols.Add("\\_", getChars("_.txt", 0));
+            _specialSymbols.Add("\\-", getChars("-.txt", 0));
+            _specialSymbols.Add("\\+", getChars("+.txt", 0));
         }
 
         private List<string> SplitByBrackets(string re)
@@ -91,9 +93,9 @@ namespace Automaton
                         i++;
                     }
                 }
-                if (re[i] == '*')
+                else
                 {
-                    tmpStr += "*";
+                    tmpStr += re[i];
                 }
                 i++;
                 result.Add(tmpStr);

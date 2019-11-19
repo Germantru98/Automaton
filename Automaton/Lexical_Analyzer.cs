@@ -108,10 +108,10 @@ namespace Automaton
         private string StrTransform(string str)
         {
             StringBuilder s = new StringBuilder(str);
-            s.Replace("\n", "\\n");
-            s.Replace("\r", "\\r");
-            s.Replace("\t", "\\t");
-            s.Replace(" ", "\\s");
+            //s.Replace("\n", "\\n");
+            //s.Replace("\r", "\\r");
+            //s.Replace("\t", "\\t");
+            //s.Replace(" ", "\\s");
             return s.ToString();
         }
 

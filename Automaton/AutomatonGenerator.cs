@@ -233,16 +233,15 @@ namespace Automaton
             var curStateStorage = new List<State>();//для каждой итерации храним в очереди все конечные состояние из прошлой
             for (int i = 0; i < splitByBreckets.Count; i++)//цикл проходит по содержимому скобок
             {
-                curStateStorage.Clear();
-                while (tempStates.Count > 0)
+                if (splitByBreckets[i] != "*")//проверяем не явл ли текущая часть *
                 {
-                    var ts = tempStates.Dequeue();
-                    curStateStorage.Add(ts);
-                    System.Console.WriteLine("Достали из очереди в лист {0}", ts._stateID);
-                }
-                foreach (var state in curStateStorage)
-                {
-                    if (splitByBreckets[i] != "*")//проверяем не явл ли текущая часть *
+                    curStateStorage.Clear();
+                    while (tempStates.Count > 0)
+                    {
+                        var ts = tempStates.Dequeue();
+                        curStateStorage.Add(ts);
+                    }
+                    foreach (var state in curStateStorage)
                     {
                         curStartState = state._stateID;
                         int curFinsihState;
@@ -252,15 +251,14 @@ namespace Automaton
                             for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
                             {
                                 curStartState = state._stateID;
-                                System.Console.WriteLine("Для {0} CSS = {1}", splitByVB[j], curStartState);
                                 var controlSymbols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
                                 int count = controlSymbols.Count;
                                 for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
                                 {
                                     var curSymbol = controlSymbols[k];
-                                    if (i == splitByBreckets.Count - 1)
+                                    if (i == splitByBreckets.Count - 1)//Если это полседняя скобка
                                     {
-                                        if (j < count - 1)
+                                        if (k < count - 1 && j < splitByVB.Count - 1)//если это не крайний упр символ и не крайний блок между |
                                         {
                                             var newState = new State(stateCounter, 1, $"S{stateCounter}");
                                             states.Add(newState);
@@ -293,8 +291,6 @@ namespace Automaton
                                     }
                                     var tmpState = GetStateByID(states, curFinsihState);
                                     tempStates.Enqueue(tmpState);
-                                    System.Console.WriteLine("помещаем {0}", tmpState);
-                                    System.Console.WriteLine("для {0} CFS = {1}", curSymbol, curFinsihState);
                                 }
                             }
                         }
@@ -305,7 +301,6 @@ namespace Automaton
                             for (int j = 0; j < splitByVB.Count; j++)//цикл проходит по частям между | и делит их на управляющие символы
                             {
                                 curStartState = state._stateID;
-                                System.Console.WriteLine("Для {0} CSS = {1}", splitByVB[j], curStartState);
                                 var controlSymbols = GetControlCharsFromCurPart(splitByVB[j]);//получены символы для текущей части до |
                                 int count = controlSymbols.Count;
                                 for (int k = 0; k < count; k++)//цикл проходит по текущим управляющим символам и добавляет в матрицу переходов соотв данные
@@ -313,7 +308,7 @@ namespace Automaton
                                     var curSymbol = controlSymbols[k];
                                     if (i == splitByBreckets.Count - 2)
                                     {
-                                        if (j < count - 1)
+                                        if (k < count - 1 && j < splitByVB.Count - 1)
                                         {
                                             var newState = new State(stateCounter, 1, $"S{stateCounter}");
                                             states.Add(newState);
@@ -347,8 +342,6 @@ namespace Automaton
                                     pairs.Add(curSymbol.ToString(), curFinsihState);
                                     var tmpState = GetStateByID(states, curFinsihState);
                                     tempStates.Enqueue(tmpState);
-                                    System.Console.WriteLine("помещаем {0}", tmpState);
-                                    System.Console.WriteLine("для {0} CFS = {1}", curSymbol, curFinsihState);
                                 }
                             }
                             foreach (var x in pairs)// в двойном цикле проходим по элементам словаря и добавляем переходы между состояними по их управляющим символам.

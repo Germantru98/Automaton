@@ -26,11 +26,11 @@ namespace Automaton
         {
             var str = GetStr("Input.txt");
             AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
-            var regExp = gen._regStorage[0];
-            System.Console.WriteLine(regExp);
-            var automaton = gen.GetAutomaton(regExp);
             List<Automaton> automatons = new List<Automaton>();
-            automatons.Add(automaton);
+            foreach (var item in gen._regStorage)
+            {
+                automatons.Add(gen.GetAutomaton(item));
+            }
             Lexical_Analyzer lexical_Analyzer = new Lexical_Analyzer(automatons);
             var result = lexical_Analyzer.Task_2(str);
             System.Console.WriteLine("RESULT: ");
@@ -38,8 +38,6 @@ namespace Automaton
             {
                 System.Console.WriteLine(item);
             }
-
-            System.Console.WriteLine("\n" + automaton);
         }
     }
 }

@@ -3,26 +3,11 @@ using System.Text;
 
 namespace Automaton
 {
-    public class Lexical_Analyzer
+    public class LexicalAnalyzer
     {
         private Dictionary<string, Automaton> _automatonStorage;
 
-        public Lexical_Analyzer()
-        {
-            _automatonStorage = new Dictionary<string, Automaton>();
-            _automatonStorage.Add("kw", new Automaton("kw_Automaton.txt"));
-            _automatonStorage.Add("op_eq", new Automaton("op_eq_Automaton.txt"));
-            _automatonStorage.Add("op", new Automaton("op_Automaton.txt"));
-            _automatonStorage.Add("id", new Automaton("ID_Automaton.txt"));
-            _automatonStorage.Add("()", new Automaton("scob_Automaton.txt"));
-            _automatonStorage.Add(";", new Automaton(";_Automaton.txt"));
-            _automatonStorage.Add("num", new Automaton("num_Automaton.txt"));
-            _automatonStorage.Add("str", new Automaton("str_Automaton.txt"));
-            _automatonStorage.Add("com", new Automaton("com_Automaton.txt"));
-            _automatonStorage.Add("ws", new Automaton("ws_Automaton.txt"));
-        }
-
-        public Lexical_Analyzer(List<Automaton> automatons)
+        public LexicalAnalyzer(List<Automaton> automatons)
         {
             _automatonStorage = new Dictionary<string, Automaton>();
             foreach (var item in automatons)

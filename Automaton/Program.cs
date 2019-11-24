@@ -24,17 +24,21 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
-            var str = GetStr("Input.txt");
-            AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
+            string str = "caaac1123";
+            AutomatonGenerator gen = new AutomatonGenerator();
+            Automaton test = gen.GetAutomatonBySymbol("1");
+            Automaton test1 = gen.GetAutomatonBySymbol("a");
+            Automaton test2 = gen.GetAutomatonBySpecialSymbol("\\d");
+            gen.VerticalBarAction(test, test1);
+            gen.Iterration(test);
+            gen.ConcatAutomatonsAction(test, test2);
+            test.ShowDelta();
+            test.ShowSigma();
             List<Automaton> automatons = new List<Automaton>();
-            foreach (var item in gen._regStorage)
-            {
-                automatons.Add(gen.GetAutomaton(item));
-            }
-            Lexical_Analyzer lexical_Analyzer = new Lexical_Analyzer(automatons);
-            var result = lexical_Analyzer.Task_2(str);
-            System.Console.WriteLine("RESULT: ");
-            foreach (var item in result)
+            automatons.Add(test);
+            LexicalAnalyzer la = new LexicalAnalyzer(automatons);
+            System.Console.WriteLine("RESULT");
+            foreach (var item in la.Task_2(str))
             {
                 System.Console.WriteLine(item);
             }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Automaton
 {
@@ -9,116 +7,25 @@ namespace Automaton
     {
         public string _automatonName { get; set; }
         public int _priority { get; private set; }
-        public List<State> _q { get; private set; }//мн-во состояний
-        public Dictionary<int, char> _sigma { get; private set; }// мн-во вх сигналов
-        public int[,] _delta { get; private set; }// таблица переходов
-
-        public override string ToString()
-        {
-            Console.WriteLine("Automaton: {0} priority: {1}", _automatonName, _priority);
-            ShowAllStates();
-            ShowAllInputSignals();
-            ShowDelta();
-            return string.Empty;
-        }
-
-        public Automaton(string automatonName, int priority, List<State> q, Dictionary<int, char> sigma, int[,] delta)
-        {
-            _automatonName = automatonName;
-            _priority = priority;
-            _q = q;
-            _sigma = sigma;
-            _delta = delta;
-        }
+        public List<string> _sigma { get; private set; }
+        public Dictionary<State, List<Line>> _delta { get; set; }
 
         public Automaton()
         {
         }
 
-        public Automaton(string filePath)
+        public Automaton(string automatonName, int priority, List<string> sigma, Dictionary<State, List<Line>> delta)
         {
-            _q = new List<State>();
-            using (StreamReader stream = new StreamReader(filePath))
-            {
-                _priority = int.Parse(stream.ReadLine());
-                _automatonName = stream.ReadLine();
-                var _states = stream.ReadLine().ToUpper().Trim().Split();
-                int _stateID = 0;
-                for (int i = 0; i < _states.Length - 1; i++)
-                {
-                    if (!char.IsDigit(_states[0][0]))
-                    {
-                        var newState = new State(_stateID, int.Parse(_states[i + 1]), _states[i]);
-                        _q.Add(newState);
-                        _stateID++;
-                        i++;
-                    }
-                }
-                var tmpSigma = stream.ReadLine().Split();
-                CreateSigma(tmpSigma);
-                int _count = int.Parse(stream.ReadLine());
-                int lineCount = _q.Count;
-                int columnCount = _sigma.Count;
-                _delta = new int[lineCount, columnCount];
-                for (int k = 0; k < _count; k++)
-                {
-                    int i = 0, j = 0;
-                    var tmpData = stream.ReadLine().Split();
-                    i = GetIdByStateName(tmpData[0]);
-                    j = GetIdByChar(char.Parse(tmpData[1]));
-                    _delta[i, j] = GetIdByStateName(tmpData[2]);
-                }
-            }
-        }
-
-        private void CreateSigma(string[] tmpSigma)
-        {
-            _sigma = new Dictionary<int, char>();
-            int charID = 0;
-            foreach (var item in tmpSigma)
-            {
-                _sigma.Add(charID, item[0]);
-                charID++;
-            }
-        }
-
-        private void ShowAllStates()
-        {
-            Console.WriteLine("States: ");
-            foreach (var item in _q)
-            {
-                Console.WriteLine(item);
-            }
-            Console.WriteLine();
-        }
-
-        private void ShowAllInputSignals()
-        {
-            Console.Write("Input signals: ");
-            foreach (var item in _sigma)
-            {
-                Console.Write(item.Value + " ");
-            }
-            Console.WriteLine();
-        }
-
-        private void ShowDelta()
-        {
-            Console.WriteLine("Delta:");
-            for (int i = 0; i < _delta.GetLength(0); i++)
-            {
-                for (int j = 0; j < _delta.GetLength(1); j++)
-                {
-                    Console.Write(_delta[i, j] + " ");
-                }
-                Console.WriteLine();
-            }
+            _automatonName = automatonName;
+            _priority = priority;
+            _sigma = sigma;
+            _delta = delta;
         }
 
         public State GetStartState()
         {
             State result = null;
-            foreach (var item in _q)
+            foreach (var item in _delta.Keys)
             {
                 if (item._stateType == 0)
                     result = item;
@@ -126,59 +33,52 @@ namespace Automaton
             return result;
         }
 
-        private int GetIdByChar(char c)
+        private bool isContainsInSigma(string symbol)
         {
-            int result = -1;
             foreach (var item in _sigma)
             {
-                if (c == item.Value)
+                if (item == symbol)
                 {
-                    result = item.Key;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private List<string> GetCurSymbolsFromLines(List<Line> lines)
+        {
+            List<string> result = new List<string>();
+            foreach (var item in lines)
+            {
+                result.Add(item._symbol);
+            }
+            return result;
+        }
+
+        private bool isContainsInCurSignals(string symbol, List<string> symbols)
+        {
+            bool result = false;
+            foreach (var item in symbols)
+            {
+                if (symbols.Contains(symbol))
+                {
+                    result = true;
+                    break;
                 }
             }
             return result;
         }
 
-        private int GetIdByStateName(string name)
+        private State GetStateBySymbol(State curState, string curSymbol)
         {
-            int result = 0;
-            foreach (var item in _q)
+            foreach (var item in _delta[curState])
             {
-                if (item._stateName == name)
+                if (item._symbol == curSymbol)
                 {
-                    result = item._stateID;
+                    return item._to;
                 }
             }
-            return result;
-        }
-
-        public int GetIdFromSigmaByChar(char c)
-        {
-            return GetIdByChar(c);
-        }
-
-        public int[] GetLineFromMatrixByState(State state)
-        {
-            int[] result = new int[_delta.GetLength(1)];
-            for (int k = 0; k < result.Length; k++)
-            {
-                result[k] = _delta[state._stateID, k];
-            }
-
-            return result;
-        }
-
-        public State GetStateByID(int id)
-        {
-            State result = null;
-            foreach (var item in _q)
-            {
-                if (item._stateID == id)
-                {
-                    result = item;
-                }
-            }
-            return result;
+            return null;
         }
 
         public KeyValuePair<bool, int> MaxStr(string str, int position)
@@ -186,7 +86,7 @@ namespace Automaton
             bool flag = false;
             int maxLength = 0;
             State curState = GetStartState();
-            int[,] delta = _delta;
+            var delta = _delta;
             bool isFinishState;
             if (curState._stateType == 2)
             {
@@ -198,19 +98,19 @@ namespace Automaton
             }
             for (int i = position; i < str.Length; i++)
             {
-                int[] curStateValues = GetLineFromMatrixByState(curState);
-                int index = GetIdFromSigmaByChar(str[i]);
-                if (index == -1)
+                var curStateValues = delta[curState];
+                var curSigma = GetCurSymbolsFromLines(curStateValues);
+                if (!isContainsInSigma(str[i].ToString()))
                 {
                     return new KeyValuePair<bool, int>(flag, maxLength);
                 }
-                else if (curStateValues[index] == 0)
+                if (!isContainsInCurSignals(str[i].ToString(), curSigma))
                 {
                     return new KeyValuePair<bool, int>(flag, maxLength);
                 }
                 else
                 {
-                    curState = GetStateByID(delta[curState._stateID, index]);
+                    curState = GetStateBySymbol(curState, str[i].ToString());
                     maxLength++;
                     flag = true;
                     if (curState._stateType == 2)
@@ -257,9 +157,25 @@ namespace Automaton
             return string.Concat(result);
         }
 
-        public bool isSymbolInSigma(char c)
+        public void ShowDelta()
         {
-            return _sigma.Values.Contains(c);
+            foreach (var state in _delta.Keys)
+            {
+                Console.WriteLine(state);
+                foreach (var line in _delta[state])
+                {
+                    Console.WriteLine(line);
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public void ShowSigma()
+        {
+            foreach (var item in _sigma)
+            {
+                Console.Write(item + " ");
+            }
         }
     }
 }

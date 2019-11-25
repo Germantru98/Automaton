@@ -80,6 +80,8 @@ namespace Automaton
             _specialSymbols.Add("\\_", getChars("_.txt", 0));
             _specialSymbols.Add("\\-", getChars("-.txt", 0));
             _specialSymbols.Add("\\+", getChars("+.txt", 0));
+            _specialSymbols.Add("\\{", getChars("{.txt", 0));
+            _specialSymbols.Add("\\}", getChars("}.txt", 0));
         }
 
         private List<string> SplitByBrackets(string re)
@@ -308,10 +310,75 @@ namespace Automaton
         public Automaton CreateAutomatonByRE(RegularExpression RE)
         {
             var RPN = ReversePN.ToRPN(RE._regExpression);
+            System.Console.WriteLine(RPN);
             var RPNParts = SplitRPN(RPN);
-            //стек
-            Automaton result = new Automaton();
+            Stack<Automaton> stack = new Stack<Automaton>();
+            foreach (var elem in RPNParts)
+            {
+                if (isOperation(elem))
+                {
+                    if (elem != "*" && stack.Count > 1)
+                    {
+                        var op2 = stack.Pop();
+                        var op1 = stack.Pop();
+                        ActionWithAutomatons(op1, op2, elem);
+                        stack.Push(op1);
+                    }
+                    else
+                    {
+                        var op1 = stack.Pop();
+                        Iterration(op1);
+                        stack.Push(op1);
+                    }
+                }
+                else
+                {
+                    if (isSpecialSymbol(elem))
+                    {
+                        stack.Push(GetAutomatonBySpecialSymbol(elem));
+                    }
+                    else
+                    {
+                        stack.Push(GetAutomatonBySymbol(elem));
+                    }
+                }
+            }
+            Automaton result = stack.Pop();
+            result._automatonName = RE._regName;
+            result._priority = RE._regPriority;
             return result;
+        }
+
+        private bool isOperation(string elem)
+        {
+            if (elem == "|")
+            {
+                return true;
+            }
+            else if (elem == "*")
+            {
+                return true;
+            }
+            else if (elem == "·")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool isSpecialSymbol(string elem)
+        {
+            if (elem.Contains("\\"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

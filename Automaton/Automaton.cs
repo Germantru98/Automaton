@@ -6,7 +6,7 @@ namespace Automaton
     public class Automaton
     {
         public string _automatonName { get; set; }
-        public int _priority { get; private set; }
+        public int _priority { get; set; }
         public List<string> _sigma { get; private set; }
         public Dictionary<State, List<Line>> _delta { get; set; }
 

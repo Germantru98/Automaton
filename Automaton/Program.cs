@@ -24,21 +24,16 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
-            string str = "caaac1123";
+            string str = "{aishdoad}asdad";
             AutomatonGenerator gen = new AutomatonGenerator();
-            Automaton test = gen.GetAutomatonBySymbol("1");
-            Automaton test1 = gen.GetAutomatonBySymbol("a");
-            Automaton test2 = gen.GetAutomatonBySpecialSymbol("\\d");
-            gen.VerticalBarAction(test, test1);
-            gen.Iterration(test);
-            gen.ConcatAutomatonsAction(test, test2);
-            test.ShowDelta();
-            test.ShowSigma();
-            List<Automaton> automatons = new List<Automaton>();
-            automatons.Add(test);
-            LexicalAnalyzer la = new LexicalAnalyzer(automatons);
-            System.Console.WriteLine("RESULT");
-            foreach (var item in la.Task_2(str))
+            RegularExpression re = new RegularExpression("test", 0, "\\{·\\w*·\\}");
+
+            var automaton = gen.CreateAutomatonByRE(re);
+            automaton.ShowDelta();
+            List<Automaton> list = new List<Automaton>();
+            list.Add(automaton);
+            LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(list);
+            foreach (var item in lexicalAnalyzer.Task_2(str))
             {
                 System.Console.WriteLine(item);
             }

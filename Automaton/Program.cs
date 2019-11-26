@@ -24,14 +24,11 @@ namespace Automaton
 
         private static void Main(string[] args)
         {
-            string str = "{aishdoad}asdad";
-            AutomatonGenerator gen = new AutomatonGenerator();
-            RegularExpression re = new RegularExpression("test", 0, "\\{·\\w*·\\}");
 
-            var automaton = gen.CreateAutomatonByRE(re);
-            automaton.ShowDelta();
-            List<Automaton> list = new List<Automaton>();
-            list.Add(automaton);
+            //·
+            string str = GetStr("Input.txt");
+            AutomatonGenerator gen = new AutomatonGenerator("RegularExpressions.txt");
+            var list = gen.GetAutomatonsByRE();
             LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(list);
             foreach (var item in lexicalAnalyzer.Task_2(str))
             {

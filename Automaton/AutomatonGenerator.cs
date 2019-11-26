@@ -380,5 +380,16 @@ namespace Automaton
                 return false;
             }
         }
+
+        public List<Automaton> GetAutomatonsByRE()
+        {
+            List<Automaton> automatons = new List<Automaton>();
+            foreach (var re in _regStorage)
+            {
+                automatons.Add(CreateAutomatonByRE(re));
+            }
+            return automatons;
+        }
+
     }
 }
